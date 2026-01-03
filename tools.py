@@ -1,19 +1,25 @@
 import joblib
 
-model = joblib.load('ml_model.joblib')
-vectorizer = joblib.load('vectorizer.joblib')
+# Load the combined pipeline
+try:
+    model = joblib.load('financial_model.joblib')
+except:
+    print("Error: Run train.py first to generate financial_model.joblib")
 
 def ml_sentiment_tool(text):
-    vec = vectorizer.transform([text])
-    pred = model.predict(vec)[0]
-    return pred
+    prediction = model.predict([text])[0]
+    return prediction.capitalize()
 
 def llm_sentiment_tool(text):
-
-    text_lower = text.lower()
-    if 'profit' in text_lower or 'gain' in text_lower:
-        return 'Positive'
-    elif 'loss' in text_lower or 'decline' in text_lower:
+    text = text.lower()
+    
+    # ALWAYS check negative words first
+    negative_words = ['loss', 'decline', 'slowdown', 'risk', 'fell', 'dropped']
+    positive_words = ['profit', 'gain', 'growth', 'increase', 'record', 'rise']
+    
+    if any(word in text for word in negative_words):
         return 'Negative'
+    elif any(word in text for word in positive_words):
+        return 'Positive'
     else:
         return 'Neutral'
